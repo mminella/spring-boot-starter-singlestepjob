@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  org.springframework.batch.autoconfigure.FlatFileItemReaderAutoConfiguration,\
+  org.springframework.batch.autoconfigure.FlatFileItemWriterAutoConfiguration,\
+  org.springframework.batch.autoconfigure.SingleStepAutoConfiguration
+
