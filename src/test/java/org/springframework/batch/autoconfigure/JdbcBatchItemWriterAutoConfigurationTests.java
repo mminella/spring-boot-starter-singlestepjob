@@ -18,7 +18,7 @@ package org.springframework.batch.autoconfigure;
 import org.junit.Test;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
@@ -31,37 +31,49 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Michael Minella
  */
-public class FlatFileItemReaderAutoConfigurationTests {
+public class JdbcBatchItemWriterAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(BatchAutoConfiguration.class,
 					TransactionAutoConfiguration.class,
-					FlatFileItemReaderAutoConfiguration.class));
+					JdbcBatchItemWriterAutoConfiguration.class));
 
 	@Test
-	public void testEmptyContext() {
+	public void emptyContext() {
 		this.contextRunner
 				.withUserConfiguration(TestConfiguration.class,
 						EmbeddedDataSourceConfiguration.class)
+				.run((context) -> assertThat(context).doesNotHaveBean("reader"));
+	}
+
+	@Test
+	public void testDefaultContextWithNamedParameters() {
+		this.contextRunner
+				.withUserConfiguration(FlatFileItemReaderAutoConfigurationTests.TestConfiguration.class,
+						EmbeddedDataSourceConfiguration.class)
+				.withPropertyValues("spring.batch.job.jdbcwriter.sql=INSERT INTO FOO VALUES :one, :two, :three",
+						"spring.batch.job.jdbcwriter.names=one,two,three")
 				.run((context) -> {
-					assertThat(context).doesNotHaveBean("reader");
+					assertThat(context).hasBean("writer");
+					JdbcBatchItemWriter writer = context.getBean(JdbcBatchItemWriter.class);
+					assertThat(ReflectionTestUtils.getField(writer, "sql")).isEqualTo("INSERT INTO FOO VALUES :one, :two, :three");
+					assertThat(ReflectionTestUtils.getField(writer, "usingNamedParameters")).isEqualTo(true);
 				});
 	}
 
 	@Test
-	public void testDefaultContext() {
+	public void testDefaultContextWithoutNamedParameters() {
 		this.contextRunner
-				.withUserConfiguration(TestConfiguration.class,
+				.withUserConfiguration(FlatFileItemReaderAutoConfigurationTests.TestConfiguration.class,
 						EmbeddedDataSourceConfiguration.class)
-				.withPropertyValues("spring.batch.job.filereader.resource=file:/Users/mminella/tmp/summaryFile.csv",
-						"spring.batch.job.filereader.name=fooReader",
-						"spring.batch.job.filereader.names=foo,bar,baz",
-						"spring.batch.job.filereader.delimited=true")
+				.withPropertyValues("spring.batch.job.jdbcwriter.sql=INSERT INTO FOO VALUES ?, ?, ?",
+						"spring.batch.job.jdbcwriter.names=one,two,three")
 				.run((context) -> {
-					assertThat(context).hasBean("reader");
-					FlatFileItemReader flatFileItemReader = context.getBean(FlatFileItemReader.class);
-					assertThat(ReflectionTestUtils.getField(flatFileItemReader, "resource")).isNotNull();
-					assertThat(flatFileItemReader.getExecutionContextKey("key")).isEqualTo("fooReader.key");
+					assertThat(context).hasBean("writer");
+					JdbcBatchItemWriter writer = context.getBean(JdbcBatchItemWriter.class);
+					assertThat(ReflectionTestUtils.getField(writer, "sql")).isEqualTo("INSERT INTO FOO VALUES ?, ?, ?");
+					assertThat(ReflectionTestUtils.getField(writer, "usingNamedParameters")).isEqualTo(false);
+					assertThat(ReflectionTestUtils.getField(writer, "itemPreparedStatementSetter")).isInstanceOf(JdbcBatchItemWriterAutoConfiguration.MapPreparedStatementSetter.class);
 				});
 	}
 

@@ -21,6 +21,7 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
+import org.springframework.batch.item.file.transform.Range;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -37,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(BatchAutoConfiguration.class)
 public class FlatFileItemReaderAutoConfiguration {
 
-	private FlatFileItemReaderProperties properties;
+	private final FlatFileItemReaderProperties properties;
 
 	public FlatFileItemReaderAutoConfiguration(FlatFileItemReaderProperties properties) {
 		this.properties = properties;
@@ -47,13 +48,34 @@ public class FlatFileItemReaderAutoConfiguration {
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(prefix = "spring.batch.job.filereader", name = "name")
 	public FlatFileItemReader<Map<Object, Object>> reader() {
-		return new FlatFileItemReaderBuilder<Map<Object, Object>>()
-				.name(properties.getName())
-				.resource(properties.getResource())
-				.delimited()
-				.names(properties.getNames())
+		FlatFileItemReaderBuilder<Map<Object, Object>> mapFlatFileItemReaderBuilder = new FlatFileItemReaderBuilder<Map<Object, Object>>()
+				.name(this.properties.getName())
+				.resource(this.properties.getResource())
+				.saveState(this.properties.isSaveState())
+				.maxItemCount(this.properties.getMaxItemCount())
+				.currentItemCount(this.properties.getCurrentItemCount())
+				.strict(this.properties.isStrict())
+				.encoding(this.properties.getEncoding())
+				.linesToSkip(this.properties.getLinesToSkip());
+
+		if(this.properties.isDelimited()) {
+			mapFlatFileItemReaderBuilder.delimited()
+					.quoteCharacter(this.properties.getQuoteCharacter())
+					.delimiter(this.properties.getDelimiter())
+					.includedFields(this.properties.getIncludedFields().toArray(new Integer[0]))
+					.names(this.properties.getNames())
+					.beanMapperStrict(this.properties.isParsingStrict())
+					.fieldSetMapper(new MapFieldSetMapper());
+		}
+		else {
+			mapFlatFileItemReaderBuilder.fixedLength()
+				.columns(this.properties.getRanges().toArray(new Range[0]))
+				.names(this.properties.getNames())
 				.fieldSetMapper(new MapFieldSetMapper())
-				.build();
+				.beanMapperStrict(this.properties.isParsingStrict());
+		}
+
+		return mapFlatFileItemReaderBuilder.build();
 	}
 
 	public static class MapFieldSetMapper implements FieldSetMapper<Map<Object, Object>> {

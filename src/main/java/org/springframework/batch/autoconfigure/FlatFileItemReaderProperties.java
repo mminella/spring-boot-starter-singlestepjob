@@ -15,7 +15,12 @@
  */
 package org.springframework.batch.autoconfigure;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.file.transform.Range;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 
@@ -25,17 +30,57 @@ import org.springframework.core.io.Resource;
 @ConfigurationProperties(prefix = "spring.batch.job.filereader")
 public class FlatFileItemReaderProperties {
 
+	private boolean saveState = true;
+
+	private String name;
+
+	private int maxItemCount = Integer.MAX_VALUE;
+
+	private int currentItemCount = 0;
+
+	private List<String> comments = new ArrayList<>();
+
+	//TODO: RecordSeparatorPolicy
+
+	private Resource resource;
+
 	private boolean strict = true;
 
 	private String encoding = FlatFileItemReader.DEFAULT_CHARSET;
 
-	private Resource resource;
+	private int linesToSkip = 0;
 
-	private Class targetType;
+	//TODO: LineCallbackHandler
+
+	//TODO: LineMapper;
+
+	//TODO: FieldSetMapper
+
+	//TODO: LineTokenizer
+
+	private boolean delimited = false;
+
+	private String delimiter = DelimitedLineTokenizer.DELIMITER_COMMA;
+
+	private char quoteCharacter = DelimitedLineTokenizer.DEFAULT_QUOTE_CHARACTER;
+
+	private List<Integer> includedFields = new ArrayList<>();
+
+	private boolean fixedLength = false;
+
+	private List<Range> ranges = new ArrayList<>();
 
 	private String[] names;
 
-	private String name;
+	private boolean parsingStrict = true;
+
+	public boolean isSaveState() {
+		return saveState;
+	}
+
+	public void setSaveState(boolean saveState) {
+		this.saveState = saveState;
+	}
 
 	public String getName() {
 		return name;
@@ -43,6 +88,38 @@ public class FlatFileItemReaderProperties {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public int getMaxItemCount() {
+		return maxItemCount;
+	}
+
+	public void setMaxItemCount(int maxItemCount) {
+		this.maxItemCount = maxItemCount;
+	}
+
+	public int getCurrentItemCount() {
+		return currentItemCount;
+	}
+
+	public void setCurrentItemCount(int currentItemCount) {
+		this.currentItemCount = currentItemCount;
+	}
+
+	public List<String> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<String> comments) {
+		this.comments = comments;
+	}
+
+	public Resource getResource() {
+		return resource;
+	}
+
+	public void setResource(Resource resource) {
+		this.resource = resource;
 	}
 
 	public boolean isStrict() {
@@ -61,20 +138,60 @@ public class FlatFileItemReaderProperties {
 		this.encoding = encoding;
 	}
 
-	public Resource getResource() {
-		return resource;
+	public int getLinesToSkip() {
+		return linesToSkip;
 	}
 
-	public void setResource(Resource resource) {
-		this.resource = resource;
+	public void setLinesToSkip(int linesToSkip) {
+		this.linesToSkip = linesToSkip;
 	}
 
-	public Class getTargetType() {
-		return targetType;
+	public boolean isDelimited() {
+		return delimited;
 	}
 
-	public void setTargetType(Class targetType) {
-		this.targetType = targetType;
+	public void setDelimited(boolean delimited) {
+		this.delimited = delimited;
+	}
+
+	public String getDelimiter() {
+		return delimiter;
+	}
+
+	public void setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
+	}
+
+	public char getQuoteCharacter() {
+		return quoteCharacter;
+	}
+
+	public void setQuoteCharacter(char quoteCharacter) {
+		this.quoteCharacter = quoteCharacter;
+	}
+
+	public List<Integer> getIncludedFields() {
+		return includedFields;
+	}
+
+	public void setIncludedFields(List<Integer> includedFields) {
+		this.includedFields = includedFields;
+	}
+
+	public boolean isFixedLength() {
+		return fixedLength;
+	}
+
+	public void setFixedLength(boolean fixedLength) {
+		this.fixedLength = fixedLength;
+	}
+
+	public List<Range> getRanges() {
+		return ranges;
+	}
+
+	public void setRanges(List<Range> ranges) {
+		this.ranges = ranges;
 	}
 
 	public String[] getNames() {
@@ -83,5 +200,13 @@ public class FlatFileItemReaderProperties {
 
 	public void setNames(String[] names) {
 		this.names = names;
+	}
+
+	public boolean isParsingStrict() {
+		return parsingStrict;
+	}
+
+	public void setParsingStrict(boolean parsingStrict) {
+		this.parsingStrict = parsingStrict;
 	}
 }
