@@ -47,7 +47,7 @@ public class FlatFileItemReaderAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(prefix = "spring.batch.job.filereader", name = "name")
-	public FlatFileItemReader<Map<Object, Object>> reader() {
+	public FlatFileItemReader<Map<Object, Object>> itemReader() {
 		FlatFileItemReaderBuilder<Map<Object, Object>> mapFlatFileItemReaderBuilder = new FlatFileItemReaderBuilder<Map<Object, Object>>()
 				.name(this.properties.getName())
 				.resource(this.properties.getResource())

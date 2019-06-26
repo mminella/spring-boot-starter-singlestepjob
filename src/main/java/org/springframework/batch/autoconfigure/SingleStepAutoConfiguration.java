@@ -16,11 +16,14 @@
 package org.springframework.batch.autoconfigure;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.step.builder.SimpleStepBuilder;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -28,8 +31,10 @@ import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Michael Minella
@@ -45,20 +50,44 @@ public class SingleStepAutoConfiguration {
 
 	private SingleStepProperties properties;
 
-	public SingleStepAutoConfiguration(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, SingleStepProperties properties) {
+	private ApplicationContext context;
+
+	public SingleStepAutoConfiguration(JobBuilderFactory jobBuilderFactory,
+			StepBuilderFactory stepBuilderFactory,
+			SingleStepProperties properties,
+			ApplicationContext context) {
 		this.jobBuilderFactory = jobBuilderFactory;
 		this.stepBuilderFactory = stepBuilderFactory;
 		this.properties = properties;
+		this.context = context;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(prefix = "spring.batch.job", name = "job-name")
-	public Job job(ItemReader<Map<Object, Object>> reader, ItemWriter<Map<Object, Object>> writer) {
-		Step step = stepBuilderFactory.get(properties.getStepName())
+	public Job job(ItemReader<Map<Object, Object>> itemReader, ItemWriter<Map<Object, Object>> itemWriter) {
+		SimpleStepBuilder<Map<Object, Object>, Map<Object, Object>> stepBuilder = stepBuilderFactory.get(properties.getStepName())
 				.<Map<Object, Object>, Map<Object, Object>>chunk(properties.getChunkSize())
-				.reader(reader)
-				.writer(writer)
+				.reader(itemReader);
+
+		if(!StringUtils.isEmpty(this.properties.getItemProcessor())) {
+			Object itemProcessor = this.context.getBean(this.properties.getItemProcessor());
+
+			if(itemProcessor instanceof ItemProcessor) {
+				stepBuilder.processor((ItemProcessor) itemProcessor);
+			}
+			else if(itemProcessor instanceof Function) {
+				stepBuilder.processor((Function) itemProcessor);
+			}
+			else {
+				throw new IllegalArgumentException("The bean configured as an ItemProcessor must be either an " +
+						"ItemProcessor<Map<Object, Object>,Map<Object, Object>> or a " +
+						"Function<Map<Object, Object>,Map<Object, Object>>.  The bean found is a " +
+						itemProcessor.getClass().toGenericString());
+			}
+		}
+
+		Step step = stepBuilder.writer(itemWriter)
 				.build();
 
 		return this.jobBuilderFactory.get(properties.getJobName())

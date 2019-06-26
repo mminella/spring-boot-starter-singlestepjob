@@ -29,6 +29,8 @@ public class SingleStepProperties {
 
 	private String jobName;
 
+	private String itemProcessor;
+
 	public String getStepName() {
 		return stepName;
 	}
@@ -51,5 +53,13 @@ public class SingleStepProperties {
 
 	public void setJobName(String jobName) {
 		this.jobName = jobName;
+	}
+
+	public String getItemProcessor() {
+		return itemProcessor;
+	}
+
+	public void setItemProcessor(String itemProcessor) {
+		this.itemProcessor = itemProcessor;
 	}
 }
