@@ -53,7 +53,7 @@ public class FlatFileItemWriterAutoConfigurationTests {
 		this.contextRunner
 				.withUserConfiguration(TestConfiguration.class,
 						EmbeddedDataSourceConfiguration.class)
-				.withPropertyValues("spring.batch.job.filewriter.resource=file:/Users/mminella/tmp/summaryFile.csv",
+				.withPropertyValues("spring.batch.job.filewriter.resource=file:${java.io.tmpdir}/summaryFile.txt",
 						"spring.batch.job.filewriter.name=fooWriter",
 						"spring.batch.job.filewriter.delimiter=;",
 						"spring.batch.job.filewriter.names=foo,bar,baz",

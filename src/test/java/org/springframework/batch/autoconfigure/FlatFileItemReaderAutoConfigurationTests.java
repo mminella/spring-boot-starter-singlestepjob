@@ -53,12 +53,12 @@ public class FlatFileItemReaderAutoConfigurationTests {
 		this.contextRunner
 				.withUserConfiguration(TestConfiguration.class,
 						EmbeddedDataSourceConfiguration.class)
-				.withPropertyValues("spring.batch.job.filereader.resource=file:/Users/mminella/tmp/summaryFile.csv",
+				.withPropertyValues("spring.batch.job.filereader.resource=/data/summaryFile.csv",
 						"spring.batch.job.filereader.name=fooReader",
-						"spring.batch.job.filereader.names=foo,bar,baz",
+						"spring.batch.job.filereader.names=foo,bar",
 						"spring.batch.job.filereader.delimited=true")
 				.run((context) -> {
-					assertThat(context).hasBean("reader");
+					assertThat(context).hasBean("itemReader");
 					FlatFileItemReader flatFileItemReader = context.getBean(FlatFileItemReader.class);
 					assertThat(ReflectionTestUtils.getField(flatFileItemReader, "resource")).isNotNull();
 					assertThat(flatFileItemReader.getExecutionContextKey("key")).isEqualTo("fooReader.key");
