@@ -4,7 +4,7 @@ This library serves as a starter for declaratively creating a single step Spring
 Spring Boot properties, you can configure a Spring Batch Job, with a single step using the supported 
 Spring Batch functionality.
 
-Current fuctionality includes the abilty to configure readers and writers via Spring Boot properties (yaml or properties).
+Current fuctionality includes the ability to configure readers and writers via Spring Boot properties (yaml or properties).
 You can also provide your own `ItemProcessor` or `Function` implementation to serve as an `ItemProcessor` to be injected
 into the step being configured.
 
